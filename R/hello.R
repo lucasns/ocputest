@@ -14,5 +14,5 @@
 #   Test Package:              'Ctrl + Shift + T'
 
 hello <- function() {
-  message = "Hello, world!"
+  return("Hello World")
 }

@@ -24,7 +24,7 @@ read_data <- function() {
 rm_data <- function(data, n=5) {
     if (nrow(data) > n) {
         return(tail(data, nrow(data) - n))
-    else {
+    } else {
         return(data)
     }
 }

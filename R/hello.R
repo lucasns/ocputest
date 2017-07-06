@@ -14,5 +14,13 @@
 #   Test Package:              'Ctrl + Shift + T'
 
 hello <- function() {
-  return("Hello World")
+    return("Hello World")
+}
+
+read_data <- function() {
+    return(iris)
+}
+
+rm_data <- function(data, n=5) {
+    return(head(data, n))
 }

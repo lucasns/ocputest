@@ -22,5 +22,9 @@ read_data <- function() {
 }
 
 rm_data <- function(data, n=5) {
-    return(head(data, n))
+    if (nrow(data) > n) {
+        return(tail(data, nrow(data) - n))
+    else {
+        return(data)
+    }
 }

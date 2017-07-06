@@ -8,8 +8,95 @@
     <script src="opencpu/jquery-1.11.1.min.js"></script>
     <script src="opencpu/opencpu-0.4.js"></script>
     <script>
+      var data;
     //init this script when the page has loaded
+
+    $(document).ready(function() {
+      $.ajax({ 
+        type: "POST",
+        data: "",
+        dataType: "json",
+        url: "http://192.168.1.83:5656/ocpu/library/ocputest/R/read_data/json",
+        success: function(data){        
+          console.log(data);
+        },
+         error(jqXHR, textStatus, errorThrown){
+             console.log(errorThrown);
+         }
+      });
+
+});
+
+
+var myList = [
+  { "name": "abc", "age": 50 },
+  { "age": "25", "hobby": "swimming" },
+  { "name": "xyz", "hobby": "programming" }
+];
+
+    function buildHtmlTable(myList, selector) {
+  var columns = addAllColumnHeaders(myList, selector);
+
+    
+  for (var i = 0; i < myList.length; i++) {
+    var row$ = $('<tr/>');
+    for (var colIndex = 0; colIndex < columns.length; colIndex++) {
+      var cellValue = myList[i][columns[colIndex]];
+      if (cellValue == null) cellValue = "";
+      row$.append($('<td/>').html(cellValue));
+    }
+    $(selector).append(row$);
+  }
+}
+
+// Adds a header row to the table and returns the set of columns.
+// Need to do union of keys from all records as some records may not contain
+// all records.
+function addAllColumnHeaders(myList, selector) {
+  $(selector).empty()
+  var columnSet = [];
+  var headerTr$ = $('<tr/>');
+
+  for (var i = 0; i < myList.length; i++) {
+    var rowHash = myList[i];
+    for (var key in rowHash) {
+      if ($.inArray(key, columnSet) == -1) {
+        columnSet.push(key);
+        headerTr$.append($('<th/>').html(key));
+      }
+    }
+  }
+  $(selector).append(headerTr$);
+
+  return columnSet;
+}
+
     $(document).ready(function(){
+      $("#showbutton").on("click", function(){
+        //disable the button to prevent multiple clicks
+        $("#showbutton").attr("disabled", "disabled");
+
+        //read the value for 'myname'
+        //var myname = $("#namefield").val();
+
+        //perform the request
+        var req = ocpu.rpc("read_data", {},
+        function(output){
+          data = output
+          buildHtmlTable(data, '#excelDataTable')
+        });
+
+        //if R returns an error, alert the error message
+        req.fail(function(){
+          alert("Server error: " + req.responseText);
+        });
+
+        //after request complete, re-enable the button
+        req.always(function(){
+          $("#showbutton").removeAttr("disabled")
+        });
+      });
+
       $("#submitbutton").on("click", function(){
         //disable the button to prevent multiple clicks
         $("#submitbutton").attr("disabled", "disabled");
@@ -18,9 +105,11 @@
         //var myname = $("#namefield").val();
 
         //perform the request
-        var req = ocpu.rpc("read_data", {},
+        var req = ocpu.rpc("rm_data", {data : data},
         function(output){
-          $("#output").text(output[0]);
+          data = output
+          console.log(data.length)
+          buildHtmlTable(data, '#excelDataTable')
         });
 
         //if R returns an error, alert the error message
@@ -33,6 +122,7 @@
           $("#submitbutton").removeAttr("disabled")
         });
       });
+
     });
     </script>
 
@@ -48,26 +138,13 @@
   </head>
 
   <body>
-    <h1>Hello, world!</h1>
-
-    <b>Your name: </b> <input type="text" id="namefield">
-
     <button id="submitbutton" type="button">Submit to server!</button>
 
-    <p id="output"></p>
+    <button id="showbutton" type="button">Show Table</button>
 
-    <br />
 
-    <p>
-     This is a basic JSON RPC call to OpenCPU. We use <tt>ocpu.rpc</tt> from the <tt>opencpu.js</tt> library to call the R function called <tt>hello</tt> included in this R package.
-    </p>
-
-    <p>Have a look at the HTML source code! Some things to notice:</p>
-    <ul>
-      <li>We can always see the source code of the R function using the API, e.g <a href="../R/hello">here</a>.</li>
-      <li>If the R function has a manual page, it we can find it <a href="../man/hello">here</a></li>
-      <li>When the name field is empty, the R function raises an error. Notice how we deal with this in javascript.</li>
-    </ul>
+    <table id="excelDataTable" border="1">
+  </table>
 
   </body>
 </html>
